@@ -1,0 +1,3 @@
+# apps
+
+Deployable applications. Add one folder per app (e.g. `apps/web`, `apps/api`).

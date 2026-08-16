@@ -1,0 +1,3 @@
+# packages
+
+Shared libraries reused across apps (e.g. config, utils, ui).
