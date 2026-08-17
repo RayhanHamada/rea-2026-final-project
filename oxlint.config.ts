@@ -14,5 +14,6 @@ export default defineConfig({
     "func-style": "off",
     "react/function-component-definition": "off",
     "require-await": "off",
+    "sort-keys": "off",
   },
 });
