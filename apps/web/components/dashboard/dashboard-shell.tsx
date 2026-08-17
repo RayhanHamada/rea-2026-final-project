@@ -78,7 +78,6 @@ export function DashboardShell({
   const signOut = useMutation({
     mutationFn: () => authClient.signOut(),
     onSuccess: () => {
-      router.push("/login");
       router.refresh();
     },
   });
