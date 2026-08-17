@@ -21,13 +21,23 @@ CREATE TABLE `cv` (
 	`user_id` text NOT NULL,
 	`original_filename` text NOT NULL,
 	`key` text NOT NULL,
-	`download_url` text NOT NULL,
 	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE INDEX `cv_userId_idx` ON `cv` (`user_id`);--> statement-breakpoint
+CREATE TABLE `cv_download_url` (
+	`id` text PRIMARY KEY NOT NULL,
+	`cv_id` text NOT NULL,
+	`url` text NOT NULL,
+	`expires_at` integer NOT NULL,
+	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	FOREIGN KEY (`cv_id`) REFERENCES `cv`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `cv_download_url_cvId_idx` ON `cv_download_url` (`cv_id`);--> statement-breakpoint
 CREATE TABLE `session` (
 	`id` text PRIMARY KEY NOT NULL,
 	`expires_at` integer NOT NULL,

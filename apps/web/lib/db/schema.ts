@@ -113,16 +113,37 @@ export const cv = sqliteTable(
       .references(() => user.id, { onDelete: "cascade" }),
     originalFilename: text("original_filename").notNull(),
     key: text("key").notNull(),
-    downloadUrl: text("download_url").notNull(),
     ...timestamps,
   },
   (table) => [index("cv_userId_idx").on(table.userId)]
 );
 
-export const cvRelations = relations(cv, ({ one }) => ({
+export const cvDownloadUrl = sqliteTable(
+  "cv_download_url",
+  {
+    id: text("id").primaryKey(),
+    cvId: text("cv_id")
+      .notNull()
+      .references(() => cv.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
+    ...timestamps,
+  },
+  (table) => [index("cv_download_url_cvId_idx").on(table.cvId)]
+);
+
+export const cvRelations = relations(cv, ({ one, many }) => ({
   user: one(user, {
     fields: [cv.userId],
     references: [user.id],
+  }),
+  downloadUrls: many(cvDownloadUrl),
+}));
+
+export const cvDownloadUrlRelations = relations(cvDownloadUrl, ({ one }) => ({
+  cv: one(cv, {
+    fields: [cvDownloadUrl.cvId],
+    references: [cv.id],
   }),
 }));
 

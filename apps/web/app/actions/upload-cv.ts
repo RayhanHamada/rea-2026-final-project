@@ -1,12 +1,12 @@
 "use server";
 
 import { headers } from "next/headers";
-import { eq } from "drizzle-orm";
+import { and, eq, gt } from "drizzle-orm";
 
 import { createAuth } from "@/lib/auth";
 import { getStore } from "@/lib/cloudflare";
 import { createDb } from "@/lib/db/client";
-import { cv } from "@/lib/db/schema";
+import { cv, cvDownloadUrl } from "@/lib/db/schema";
 import { s3mini } from "@/lib/r2";
 
 export interface PresignedUploadResult {
@@ -63,8 +63,6 @@ export async function saveCvRecord({
     return existing;
   }
 
-  const downloadUrl = await s3mini.getPresignedUrl("GET", key, 7 * 24 * 3600);
-
   const [record] = await db
     .insert(cv)
     .values({
@@ -72,9 +70,55 @@ export async function saveCvRecord({
       userId: session.user.id,
       originalFilename,
       key,
-      downloadUrl,
     })
     .returning();
 
   return record;
+}
+
+export async function getCvDownloadUrl(cvId: string) {
+  const env = getStore();
+  if (!env) {
+    throw new Error("Cloudflare env not available outside a request");
+  }
+
+  const auth = createAuth(env);
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
+    throw new Error("You must be signed in to continue.");
+  }
+
+  const db = createDb(env);
+  const [record] = await db
+    .select()
+    .from(cv)
+    .where(eq(cv.id, cvId))
+    .limit(1);
+
+  if (!record || record.userId !== session.user.id) {
+    throw new Error("CV not found.");
+  }
+
+  const now = new Date();
+  const [cached] = await db
+    .select()
+    .from(cvDownloadUrl)
+    .where(and(eq(cvDownloadUrl.cvId, cvId), gt(cvDownloadUrl.expiresAt, now)))
+    .limit(1);
+
+  if (cached) {
+    return cached.url;
+  }
+
+  const url = await s3mini.getPresignedUrl("GET", record.key, 7 * 24 * 3600);
+  const expiresAt = new Date(Date.now() + 7 * 24 * 3600 * 1000);
+
+  await db.insert(cvDownloadUrl).values({
+    id: crypto.randomUUID(),
+    cvId,
+    url,
+    expiresAt,
+  });
+
+  return url;
 }
