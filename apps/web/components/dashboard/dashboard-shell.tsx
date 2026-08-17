@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { BriefcaseBusiness, House, LogOut } from "lucide-react";
 import Link from "next/link";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,10 +50,12 @@ export function DashboardShell({
   children,
   userName,
   userEmail,
+  userImage,
 }: {
   children: React.ReactNode;
   userName?: string | null;
   userEmail?: string | null;
+  userImage?: string | null;
 }) {
   const signOut = useMutation({
     mutationFn: () => authClient.signOut(),
@@ -109,6 +111,9 @@ export function DashboardShell({
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton className="h-9">
                   <Avatar className="size-7">
+                    {userImage ? (
+                      <AvatarImage src={userImage} alt={userName ?? "User"} />
+                    ) : null}
                     <AvatarFallback className="bg-muted text-xs">
                       {getInitials(userName)}
                     </AvatarFallback>

@@ -26,5 +26,13 @@ export default async function DashboardLayout({ children }: Props) {
     redirect("/onboarding");
   }
 
-  return <DashboardShell>{children}</DashboardShell>;
+  return (
+    <DashboardShell
+      userName={session.user.name}
+      userEmail={session.user.email}
+      userImage={session.user.image}
+    >
+      {children}
+    </DashboardShell>
+  );
 }
