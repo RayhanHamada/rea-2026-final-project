@@ -6,6 +6,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "web",
   "compatibility_date": "2026-08-17",
+  "compatibility_flags": ["nodejs_als"],
   "main": "./worker/index.ts",
   "assets": {
     "directory": "dist/client",
@@ -22,4 +23,38 @@
     "enabled": true,
   },
   "upload_source_maps": true,
+  "env": {
+    "local": {
+      "vars": {
+        "BETTER_AUTH_URL": "http://localhost:8787",
+        "GOOGLE_CLIENT_ID": "",
+        "GOOGLE_CLIENT_SECRET": "",
+        "BETTER_AUTH_SECRET": "",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "web-local",
+          "database_id": "REPLACE_WITH_LOCAL_DATABASE_ID",
+          "migrations_dir": "drizzle",
+        },
+      ],
+    },
+    "production": {
+      "vars": {
+        "BETTER_AUTH_URL": "REPLACE_WITH_PRODUCTION_URL",
+        "GOOGLE_CLIENT_ID": "",
+        "GOOGLE_CLIENT_SECRET": "",
+        "BETTER_AUTH_SECRET": "",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "web",
+          "database_id": "REPLACE_WITH_PRODUCTION_DATABASE_ID",
+          "migrations_dir": "drizzle",
+        },
+      ],
+    },
+  },
 }

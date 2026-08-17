@@ -1,14 +1,14 @@
 import { getOrCreateAls } from "vinext/shims/internal/als-registry";
 
-const als = getOrCreateAls<CloudflareEnv>("web.cloudflareEnv.als");
+const als = getOrCreateAls<Env>("web.cloudflareEnv.als");
 
-export function runWithCloudflareEnv<T>(
-  env: CloudflareEnv,
+export function runWithEnv<T>(
+  env: Env,
   fn: () => T | Promise<T>
 ): T | Promise<T> {
   return als.run(env, fn);
 }
 
-export function getCloudflareEnv(): CloudflareEnv | null {
+export function getEnv(): Env | null {
   return als.getStore() ?? null;
 }

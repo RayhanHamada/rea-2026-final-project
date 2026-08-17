@@ -15,5 +15,6 @@ export default defineConfig({
     "react/function-component-definition": "off",
     "require-await": "off",
     "sort-keys": "off",
+    "typescript/no-non-null-assertion": "off",
   },
 });
