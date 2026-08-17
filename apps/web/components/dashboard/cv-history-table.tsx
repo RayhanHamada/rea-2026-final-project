@@ -10,7 +10,7 @@ import {
   useLegacyTable,
 } from "@tanstack/react-table/legacy";
 import type { LegacyColumnDef } from "@tanstack/react-table/legacy";
-import { Download, Trash2 } from "lucide-react";
+import { Download, MoreHorizontal, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -28,9 +28,14 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -54,9 +59,10 @@ function formatDate(date: Date) {
   }).format(date);
 }
 
-function DeleteButton({ cvId, filename }: { cvId: string; filename: string }) {
+function ActionsMenu({ cvId, filename }: { cvId: string; filename: string }) {
   const queryClient = useQueryClient();
-  const [open, setOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const del = useMutation({
     mutationFn: () => deleteCvRecord(cvId),
@@ -67,45 +73,76 @@ function DeleteButton({ cvId, filename }: { cvId: string; filename: string }) {
     onError: (err) => {
       toast.error(err instanceof Error ? err.message : "Failed to delete.");
     },
-    onSettled: () => setOpen(false),
+    onSettled: () => {
+      setConfirmOpen(false);
+      setMenuOpen(false);
+    },
   });
 
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="text-muted-foreground hover:text-destructive"
-          aria-label={`Delete ${filename}`}
-        >
-          <Trash2 />
-        </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Delete CV?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This will permanently delete{" "}
-            <span className="text-foreground font-medium">{filename}</span>.
-            This action cannot be undone.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={del.isPending}>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            disabled={del.isPending}
-            onClick={(e) => {
+    <>
+      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={`Actions for ${filename}`}
+          >
+            <MoreHorizontal />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem
+            onClick={async (e) => {
               e.preventDefault();
-              del.mutate();
+              setMenuOpen(false);
+              const url = await getCvDownloadUrl(cvId);
+              window.open(url, "_blank");
             }}
           >
-            {del.isPending ? "Deleting…" : "Delete"}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+            <Download />
+            Download
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={(e) => {
+              e.preventDefault();
+              setMenuOpen(false);
+              setConfirmOpen(true);
+            }}
+          >
+            <Trash2 />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete CV?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete{" "}
+              <span className="text-foreground font-medium">{filename}</span>.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={del.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={del.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                del.mutate();
+              }}
+            >
+              {del.isPending ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
@@ -135,29 +172,10 @@ export function CvHistoryTable() {
         },
       },
       {
-        id: "download",
+        id: "actions",
         header: "",
         cell: ({ row }) => (
-          <Button
-            variant="link"
-            size="sm"
-            className="h-auto p-0"
-            onClick={async (e) => {
-              e.stopPropagation();
-              const url = await getCvDownloadUrl(row.original.id);
-              window.open(url, "_blank");
-            }}
-          >
-            <Download />
-            Download
-          </Button>
-        ),
-      },
-      {
-        id: "delete",
-        header: "",
-        cell: ({ row }) => (
-          <DeleteButton
+          <ActionsMenu
             cvId={row.original.id}
             filename={row.original.originalFilename}
           />
