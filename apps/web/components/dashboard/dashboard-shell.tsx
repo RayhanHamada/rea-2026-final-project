@@ -10,7 +10,6 @@ import {
   UsersRound,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -73,12 +72,10 @@ export function DashboardShell({
   userName?: string | null;
   userEmail?: string | null;
 }) {
-  const router = useRouter();
-
   const signOut = useMutation({
     mutationFn: () => authClient.signOut(),
     onSuccess: () => {
-      router.refresh();
+      window.location.reload();
     },
   });
 

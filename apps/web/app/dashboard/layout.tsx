@@ -14,10 +14,15 @@ export default async function DashboardLayout({ children }: Props) {
     throw new Error("No Env");
   }
 
-  const header = await headers();
-  const session = await createAuth(env).api.getSession({ headers: header });
+  const session = await createAuth(env).api.getSession({
+    headers: await headers(),
+  });
+  if (!session?.session) {
+    redirect("/login");
+  }
+
   const roles = session?.user.role?.split(",") ?? [];
-  if (roles.length === 1 && roles.at(0) === ROLE.ADMIN) {
+  if (roles.length === 1 && roles.includes(ROLE.ADMIN)) {
     redirect("/onboarding");
   }
 
