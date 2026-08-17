@@ -9,6 +9,6 @@ export function runWithEnv<T>(
   return als.run(env, fn);
 }
 
-export function getEnv(): Env | null {
+export function getStore() {
   return als.getStore() ?? null;
 }

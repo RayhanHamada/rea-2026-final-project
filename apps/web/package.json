@@ -15,7 +15,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:regen": "rm -rf drizzle && drizzle-kit generate",
-    "db:migrate:local": "wrangler -e local d1 migrations apply DB",
+    "db:migrate:local": "rm -rf .wrangler && wrangler -e local d1 migrations apply DB",
     "db:migrate:remote": "wrangler -e production d1 migrations apply DB"
   },
   "dependencies": {
