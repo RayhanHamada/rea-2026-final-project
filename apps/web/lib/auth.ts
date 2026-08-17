@@ -2,6 +2,8 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { betterAuth } from "better-auth/minimal";
 import { admin, openAPI } from "better-auth/plugins";
 
+import { ROLE } from "@/lib/constants";
+
 import { appenv } from "./appenv";
 import {
   ac,
@@ -18,6 +20,7 @@ export function createAuth(env: Env) {
 
     appName: "rea-final-project",
     baseURL: appenv.BETTER_AUTH_URL,
+
     socialProviders: {
       google: {
         clientId: appenv.GOOGLE_CLIENT_ID,
@@ -27,6 +30,7 @@ export function createAuth(env: Env) {
     plugins: [
       admin({
         ac,
+        defaultRole: ROLE.ADMIN,
         roles: {
           admin: adminRole,
           recruiter,

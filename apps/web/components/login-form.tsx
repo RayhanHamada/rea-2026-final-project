@@ -38,7 +38,11 @@ function GoogleIcon() {
 export function LoginForm() {
   const login = useMutation({
     mutationFn: () =>
-      authClient.signIn.social({ provider: "google", callbackURL: "/" }),
+      authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/dashboard",
+        newUserCallbackURL: "/onboarding",
+      }),
   });
 
   return (
