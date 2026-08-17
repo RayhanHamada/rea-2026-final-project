@@ -10,7 +10,7 @@ import {
   useLegacyTable,
 } from "@tanstack/react-table/legacy";
 import type { LegacyColumnDef } from "@tanstack/react-table/legacy";
-import { Download, MoreHorizontal, Trash2 } from "lucide-react";
+import { Download, MoreHorizontal, Star, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -18,6 +18,7 @@ import {
   listCvRecords,
   getCvDownloadUrl,
   deleteCvRecord,
+  setCurrentCv,
 } from "@/app/actions/upload-cv";
 import {
   AlertDialog,
@@ -29,6 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -59,10 +61,30 @@ function formatDate(date: Date) {
   }).format(date);
 }
 
-function ActionsMenu({ cvId, filename }: { cvId: string; filename: string }) {
+function ActionsMenu({
+  cvId,
+  filename,
+  isCurrentlyUsed,
+}: {
+  cvId: string;
+  filename: string;
+  isCurrentlyUsed: boolean;
+}) {
   const queryClient = useQueryClient();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const useCv = useMutation({
+    mutationFn: () => setCurrentCv(cvId),
+    onSuccess: () => {
+      toast.success("Active CV updated", { description: filename });
+      queryClient.invalidateQueries({ queryKey: ["cvs"] });
+      setMenuOpen(false);
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Failed to update.");
+    },
+  });
 
   const del = useMutation({
     mutationFn: () => deleteCvRecord(cvId),
@@ -92,6 +114,18 @@ function ActionsMenu({ cvId, filename }: { cvId: string; filename: string }) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          {!isCurrentlyUsed && (
+            <DropdownMenuItem
+              disabled={useCv.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                useCv.mutate();
+              }}
+            >
+              <Star />
+              Use This CV
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem
             onClick={async (e) => {
               e.preventDefault();
@@ -128,7 +162,9 @@ function ActionsMenu({ cvId, filename }: { cvId: string; filename: string }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={del.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={del.isPending}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={del.isPending}
@@ -172,12 +208,25 @@ export function CvHistoryTable() {
         },
       },
       {
+        accessorKey: "isCurrentlyUsed",
+        header: "Active",
+        cell: ({ getValue }) => {
+          const isCurrentlyUsed = getValue<boolean>();
+          return isCurrentlyUsed ? (
+            <Badge>In use</Badge>
+          ) : (
+            <Badge variant="outline">Not in use</Badge>
+          );
+        },
+      },
+      {
         id: "actions",
         header: "",
         cell: ({ row }) => (
           <ActionsMenu
             cvId={row.original.id}
             filename={row.original.originalFilename}
+            isCurrentlyUsed={row.original.isCurrentlyUsed}
           />
         ),
       },
@@ -205,7 +254,7 @@ export function CvHistoryTable() {
               <TableRow className="hover:bg-transparent">
                 <TableHead>Filename</TableHead>
                 <TableHead>Uploaded at</TableHead>
-                <TableHead />
+                <TableHead>Active</TableHead>
                 <TableHead />
               </TableRow>
             </TableHeader>

@@ -113,6 +113,9 @@ export const cv = sqliteTable(
       .references(() => user.id, { onDelete: "cascade" }),
     originalFilename: text("original_filename").notNull(),
     key: text("key").notNull(),
+    isCurrentlyUsed: integer("is_currently_used", { mode: "boolean" })
+      .default(false)
+      .notNull(),
     ...timestamps,
   },
   (table) => [index("cv_userId_idx").on(table.userId)]

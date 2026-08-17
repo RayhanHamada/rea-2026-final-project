@@ -7,8 +7,8 @@ import { createAuth } from "@/lib/auth";
 import { getStore } from "@/lib/cloudflare";
 import { createDb } from "@/lib/db/client";
 import { cv, cvDownloadUrl } from "@/lib/db/schema";
-import { s3mini } from "@/lib/r2";
 import type { CvRecord } from "@/lib/db/schema";
+import { s3mini } from "@/lib/r2";
 
 export type { CvRecord };
 
@@ -142,6 +142,32 @@ export async function getCvDownloadUrl(cvId: string) {
   return url;
 }
 
+export async function setCurrentCv(cvId: string) {
+  const env = getStore();
+  if (!env) {
+    throw new Error("Cloudflare env not available outside a request");
+  }
+
+  const auth = createAuth(env);
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
+    throw new Error("You must be signed in to continue.");
+  }
+
+  const db = createDb(env);
+  const [record] = await db.select().from(cv).where(eq(cv.id, cvId)).limit(1);
+
+  if (!record || record.userId !== session.user.id) {
+    throw new Error("CV not found.");
+  }
+
+  await db
+    .update(cv)
+    .set({ isCurrentlyUsed: false })
+    .where(eq(cv.userId, session.user.id));
+  await db.update(cv).set({ isCurrentlyUsed: true }).where(eq(cv.id, cvId));
+}
+
 export async function deleteCvRecord(cvId: string) {
   const env = getStore();
   if (!env) {
@@ -155,11 +181,7 @@ export async function deleteCvRecord(cvId: string) {
   }
 
   const db = createDb(env);
-  const [record] = await db
-    .select()
-    .from(cv)
-    .where(eq(cv.id, cvId))
-    .limit(1);
+  const [record] = await db.select().from(cv).where(eq(cv.id, cvId)).limit(1);
 
   if (!record || record.userId !== session.user.id) {
     throw new Error("CV not found.");
