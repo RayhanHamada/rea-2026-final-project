@@ -1,1 +1,6 @@
-["**/.agents/**", "**/components/ui/**", "worker-configuration.d.ts"]
+[
+  "**/.agents/**",
+  "**/components/ui/**",
+  "**/worker-configuration.d.ts",
+  "**/drizzle/**"
+]
