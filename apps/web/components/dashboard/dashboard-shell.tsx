@@ -1,11 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import {
-  BriefcaseBusiness,
-  House,
-  LogOut,
-} from "lucide-react";
+import { BriefcaseBusiness, House, LogOut } from "lucide-react";
 import Link from "next/link";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -35,9 +31,7 @@ import {
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 
-const NAV = [
-  { title: "Home", url: "/dashboard", icon: House },
-] as const;
+const NAV = [{ title: "Home", url: "/dashboard", icon: House }] as const;
 
 function getInitials(name?: string | null) {
   if (!name) {

@@ -118,6 +118,8 @@ export const cv = sqliteTable(
   (table) => [index("cv_userId_idx").on(table.userId)]
 );
 
+export type CvRecord = typeof cv.$inferSelect;
+
 export const cvDownloadUrl = sqliteTable(
   "cv_download_url",
   {

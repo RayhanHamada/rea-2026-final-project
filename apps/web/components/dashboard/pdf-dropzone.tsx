@@ -2,13 +2,16 @@
 
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FileText, Loader2, Upload, UploadCloud, X } from "lucide-react";
 import { useRef, useState } from "react";
 import type { DragEvent, KeyboardEvent } from "react";
 import { toast } from "sonner";
 
-import { createPresignedCvUploadUrl, saveCvRecord } from "@/app/actions/upload-cv";
+import {
+  createPresignedCvUploadUrl,
+  saveCvRecord,
+} from "@/app/actions/upload-cv";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -50,8 +53,9 @@ export function PdfDropzone() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [file, setFile] = useState<File | null>(null);
-  const [, setError] = useState<string | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
+
+  const queryClient = useQueryClient();
 
   const upload = useMutation({
     mutationFn: async (f: File) => {
@@ -75,6 +79,7 @@ export function PdfDropzone() {
       toast.success("CV uploaded", {
         description: variables.name,
       });
+      queryClient.invalidateQueries({ queryKey: ["cvs"] });
       setFile(null);
       if (inputRef.current) {
         inputRef.current.value = "";
@@ -86,8 +91,6 @@ export function PdfDropzone() {
   });
 
   const selectFile = (candidate?: File) => {
-    setError(null);
-
     if (!candidate) {
       return;
     }
@@ -95,7 +98,7 @@ export function PdfDropzone() {
     const validationError = validateFile(candidate);
 
     if (validationError) {
-      setError(validationError);
+      toast.error(validationError);
       return;
     }
 
@@ -106,7 +109,6 @@ export function PdfDropzone() {
   const clearFile = () => {
     upload.reset();
     setFile(null);
-    setError(null);
 
     if (inputRef.current) {
       inputRef.current.value = "";
@@ -223,7 +225,7 @@ export function PdfDropzone() {
   };
 
   return (
-    <Card className="mx-auto w-full max-w-xl">
+    <Card className="w-full max-w-2xl">
       <CardHeader>
         <CardTitle>Upload a CV</CardTitle>
         <CardDescription>Drop a single PDF to get started.</CardDescription>

@@ -1,13 +1,36 @@
 "use server";
 
+import { and, desc, eq, gt } from "drizzle-orm";
 import { headers } from "next/headers";
-import { and, eq, gt } from "drizzle-orm";
 
 import { createAuth } from "@/lib/auth";
 import { getStore } from "@/lib/cloudflare";
 import { createDb } from "@/lib/db/client";
 import { cv, cvDownloadUrl } from "@/lib/db/schema";
 import { s3mini } from "@/lib/r2";
+import type { CvRecord } from "@/lib/db/schema";
+
+export type { CvRecord };
+
+export async function listCvRecords() {
+  const env = getStore();
+  if (!env) {
+    throw new Error("Cloudflare env not available outside a request");
+  }
+
+  const auth = createAuth(env);
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
+    throw new Error("You must be signed in to continue.");
+  }
+
+  const db = createDb(env);
+  return db
+    .select()
+    .from(cv)
+    .where(eq(cv.userId, session.user.id))
+    .orderBy(desc(cv.createdAt));
+}
 
 export interface PresignedUploadResult {
   url: string;
@@ -89,11 +112,7 @@ export async function getCvDownloadUrl(cvId: string) {
   }
 
   const db = createDb(env);
-  const [record] = await db
-    .select()
-    .from(cv)
-    .where(eq(cv.id, cvId))
-    .limit(1);
+  const [record] = await db.select().from(cv).where(eq(cv.id, cvId)).limit(1);
 
   if (!record || record.userId !== session.user.id) {
     throw new Error("CV not found.");
@@ -121,4 +140,31 @@ export async function getCvDownloadUrl(cvId: string) {
   });
 
   return url;
+}
+
+export async function deleteCvRecord(cvId: string) {
+  const env = getStore();
+  if (!env) {
+    throw new Error("Cloudflare env not available outside a request");
+  }
+
+  const auth = createAuth(env);
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
+    throw new Error("You must be signed in to continue.");
+  }
+
+  const db = createDb(env);
+  const [record] = await db
+    .select()
+    .from(cv)
+    .where(eq(cv.id, cvId))
+    .limit(1);
+
+  if (!record || record.userId !== session.user.id) {
+    throw new Error("CV not found.");
+  }
+
+  await s3mini.deleteObject(record.key);
+  await db.delete(cv).where(eq(cv.id, cvId));
 }
