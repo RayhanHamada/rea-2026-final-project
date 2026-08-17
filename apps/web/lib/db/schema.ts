@@ -3,6 +3,16 @@
 import { relations, sql } from "drizzle-orm";
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 
+const timestamps = {
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+};
+
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -94,9 +104,32 @@ export const verification = sqliteTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)]
 );
 
+export const cv = sqliteTable(
+  "cv",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    originalFilename: text("original_filename").notNull(),
+    key: text("key").notNull(),
+    downloadUrl: text("download_url").notNull(),
+    ...timestamps,
+  },
+  (table) => [index("cv_userId_idx").on(table.userId)]
+);
+
+export const cvRelations = relations(cv, ({ one }) => ({
+  user: one(user, {
+    fields: [cv.userId],
+    references: [user.id],
+  }),
+}));
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
+  cvs: many(cv),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
