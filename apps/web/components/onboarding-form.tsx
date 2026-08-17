@@ -1,10 +1,11 @@
 "use client";
 
+import { Check } from "lucide-react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { Check } from "lucide-react";
 
 import { setOnboardingRole } from "@/app/onboarding/actions";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,7 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { ROLE } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -96,7 +96,7 @@ export function OnboardingForm() {
                       {option.description}
                     </span>
                   </span>
-                  <Check className="size-4 text-primary opacity-0 transition-opacity group-has-[:checked]:opacity-100" />
+                  <Check className="text-primary size-4 opacity-0 transition-opacity group-has-[:checked]:opacity-100" />
                 </span>
               </label>
             ))}

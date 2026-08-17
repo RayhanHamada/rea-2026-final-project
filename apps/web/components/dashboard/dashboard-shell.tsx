@@ -4,10 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import {
   BriefcaseBusiness,
   House,
-  LayoutDashboard,
   LogOut,
-  Settings,
-  UsersRound,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -20,7 +17,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
@@ -39,15 +35,8 @@ import {
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 
-const PRIMARY_NAV = [
-  { title: "Overview", url: "/dashboard", icon: House },
-  { title: "Candidates", url: "/dashboard/candidates", icon: UsersRound },
-  { title: "Jobs", url: "/dashboard/jobs", icon: BriefcaseBusiness },
-] as const;
-
-const UTILITY_NAV = [
-  { title: "Analytics", url: "/dashboard/analytics", icon: LayoutDashboard },
-  { title: "Settings", url: "/dashboard/settings", icon: Settings },
+const NAV = [
+  { title: "Home", url: "/dashboard", icon: House },
 ] as const;
 
 function getInitials(name?: string | null) {
@@ -104,28 +93,10 @@ export function DashboardShell({
           </SidebarHeader>
           <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+              <SidebarGroupLabel>Menu</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {PRIMARY_NAV.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild tooltip={item.title}>
-                        <a href={item.url}>
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </a>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-            <Separator />
-            <SidebarGroup>
-              <SidebarGroupLabel>Manage</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {UTILITY_NAV.map((item) => (
+                  {NAV.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild tooltip={item.title}>
                         <a href={item.url}>
@@ -164,14 +135,6 @@ export function DashboardShell({
               >
                 <DropdownMenuLabel>My account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Settings />
-                  Account settings
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings />
-                  Account settings
-                </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive"
                   disabled={signOut.isPending}

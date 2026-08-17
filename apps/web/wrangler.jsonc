@@ -11,56 +11,44 @@
   "assets": {
     "directory": "dist/client",
     "not_found_handling": "none",
-    "binding": "ASSETS",
+    "binding": "ASSETS"
   },
   "cache": {
-    "enabled": true,
+    "enabled": true
   },
   "images": {
-    "binding": "IMAGES",
+    "binding": "IMAGES"
   },
   "observability": {
-    "enabled": true,
+    "enabled": true
   },
   "upload_source_maps": true,
   "env": {
     "local": {
       "images": {
-        "binding": "IMAGES",
-      },
-      "vars": {
-        "BETTER_AUTH_URL": "http://localhost:8787",
-        "GOOGLE_CLIENT_ID": "",
-        "GOOGLE_CLIENT_SECRET": "",
-        "BETTER_AUTH_SECRET": "",
+        "binding": "IMAGES"
       },
       "d1_databases": [
         {
           "binding": "DB",
           "database_name": "web-local",
           "database_id": "web-local",
-          "migrations_dir": "drizzle",
-        },
-      ],
+          "migrations_dir": "drizzle"
+        }
+      ]
     },
     "production": {
       "images": {
-        "binding": "IMAGES",
-      },
-      "vars": {
-        "BETTER_AUTH_URL": "REPLACE_WITH_PRODUCTION_URL",
-        "GOOGLE_CLIENT_ID": "",
-        "GOOGLE_CLIENT_SECRET": "",
-        "BETTER_AUTH_SECRET": "",
+        "binding": "IMAGES"
       },
       "d1_databases": [
         {
           "binding": "DB",
           "database_name": "web",
           "database_id": "REPLACE_WITH_PRODUCTION_DATABASE_ID",
-          "migrations_dir": "drizzle",
-        },
-      ],
-    },
-  },
+          "migrations_dir": "drizzle"
+        }
+      ]
+    }
+  }
 }
