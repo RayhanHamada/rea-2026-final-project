@@ -1,3 +1,5 @@
+// oxlint-disable jsx-a11y/prefer-tag-over-role
+
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
@@ -48,7 +50,7 @@ export function PdfDropzone() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [file, setFile] = useState<File | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
 
   const upload = useMutation({
