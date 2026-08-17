@@ -16,5 +16,6 @@ export default defineConfig({
     "require-await": "off",
     "sort-keys": "off",
     "typescript/no-non-null-assertion": "off",
+    "react/hook-use-state": "off",
   },
 });

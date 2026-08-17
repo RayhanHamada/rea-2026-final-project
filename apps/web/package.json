@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vinext dev",
+    "dev": "CLOUDFLARE_ENV=local vinext dev",
     "build": "vinext build",
     "start": "wrangler dev --config dist/server/wrangler.json",
     "deploy": "vinext-cloudflare deploy --config dist/server/wrangler.json",
@@ -21,6 +21,7 @@
   "dependencies": {
     "@shadcn/react": "^0.3.0",
     "@t3-oss/env-nextjs": "^0.13.11",
+    "@tanstack/react-query": "^5.101.4",
     "@vinext/cloudflare": "latest",
     "better-auth": "^1.6.29",
     "class-variance-authority": "^0.7.1",

@@ -13,9 +13,6 @@ export function createAuth(env: DbEnv) {
 
     appName: "rea-final-project",
     baseURL: appenv.BETTER_AUTH_URL,
-    emailAndPassword: {
-      enabled: true,
-    },
     socialProviders: {
       google: {
         clientId: appenv.GOOGLE_CLIENT_ID ?? "",

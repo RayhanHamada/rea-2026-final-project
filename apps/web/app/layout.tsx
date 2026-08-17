@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Geist } from "next/font/google";
 
+import { Providers } from "@/components/providers";
+import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -18,9 +20,14 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={cn("font-sans", geist.variable)}>
-      <TooltipProvider>
-        <body>{children}</body>
-      </TooltipProvider>
+      <Providers>
+        <TooltipProvider>
+          <body>
+            {children}
+            <Toaster />
+          </body>
+        </TooltipProvider>
+      </Providers>
     </html>
   );
 }
