@@ -25,6 +25,9 @@
   "upload_source_maps": true,
   "env": {
     "local": {
+      "images": {
+        "binding": "IMAGES",
+      },
       "vars": {
         "BETTER_AUTH_URL": "http://localhost:8787",
         "GOOGLE_CLIENT_ID": "",
@@ -35,12 +38,15 @@
         {
           "binding": "DB",
           "database_name": "web-local",
-          "database_id": "REPLACE_WITH_LOCAL_DATABASE_ID",
+          "database_id": "web-local",
           "migrations_dir": "drizzle",
         },
       ],
     },
     "production": {
+      "images": {
+        "binding": "IMAGES",
+      },
       "vars": {
         "BETTER_AUTH_URL": "REPLACE_WITH_PRODUCTION_URL",
         "GOOGLE_CLIENT_ID": "",
