@@ -1,12 +1,19 @@
 "use client";
 
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
+import { Check } from "lucide-react";
+
+import { setOnboardingRole } from "@/app/onboarding/actions";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { ROLE } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -32,7 +39,18 @@ const OPTIONS: RoleOption[] = [
   },
 ];
 
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending ? "Saving…" : "Continue"}
+    </Button>
+  );
+}
+
 export function OnboardingForm() {
+  const [state, formAction] = useActionState(setOnboardingRole, null);
+
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
@@ -41,36 +59,56 @@ export function OnboardingForm() {
           We&apos;ll tailor the experience just for you.
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="flex flex-col gap-3">
-          {OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              className={cn(
-                "group flex items-center gap-4 rounded-xl border p-4 text-left",
-                "transition-all outline-none select-none",
-                "hover:border-primary hover:bg-muted",
-                "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3",
-                "active:translate-y-px",
-                "border-border"
-              )}
-            >
-              <span className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-full text-xl transition-transform group-hover:scale-110">
-                {option.emoji}
-              </span>
-              <span>
-                <span className="block text-sm font-medium">
-                  {option.title}
+      <form action={formAction}>
+        <CardContent>
+          <fieldset className="flex flex-col gap-3">
+            <legend className="sr-only">Select your role</legend>
+            {OPTIONS.map((option) => (
+              <label
+                key={option.value}
+                className="group cursor-pointer select-none"
+              >
+                <input
+                  type="radio"
+                  name="role"
+                  value={option.value}
+                  className="sr-only"
+                />
+                <span
+                  className={cn(
+                    "flex items-center gap-4 rounded-xl border p-4 text-left",
+                    "transition-all outline-none",
+                    "hover:border-primary hover:bg-muted",
+                    "group-has-[:checked]:border-primary group-has-[:checked]:bg-primary/5",
+                    "group-focus-within:border-ring group-focus-within:ring-ring/50 group-focus-within:ring-3",
+                    "active:translate-y-px",
+                    "border-border"
+                  )}
+                >
+                  <span className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-full text-xl transition-transform group-has-[:checked]:scale-110">
+                    {option.emoji}
+                  </span>
+                  <span className="flex-1">
+                    <span className="block text-sm font-medium">
+                      {option.title}
+                    </span>
+                    <span className="text-muted-foreground block text-sm">
+                      {option.description}
+                    </span>
+                  </span>
+                  <Check className="size-4 text-primary opacity-0 transition-opacity group-has-[:checked]:opacity-100" />
                 </span>
-                <span className="text-muted-foreground block text-sm">
-                  {option.description}
-                </span>
-              </span>
-            </button>
-          ))}
-        </div>
-      </CardContent>
+              </label>
+            ))}
+          </fieldset>
+          {state?.error ? (
+            <p className="text-destructive mt-4 text-sm">{state.error}</p>
+          ) : null}
+        </CardContent>
+        <CardFooter>
+          <SubmitButton />
+        </CardFooter>
+      </form>
     </Card>
   );
 }
