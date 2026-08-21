@@ -75,7 +75,9 @@ export function PdfDropzone() {
       }
 
       return saveCvRecord({ key, originalFilename: f.name }).then((record) =>
-        copyCvForMarkedKey(record.id).then(() => record)
+        copyCvForMarkedKey(record.id, { width: 40, height: 40 }).then(
+          () => record
+        )
       );
     },
     onSuccess: (_, variables) => {

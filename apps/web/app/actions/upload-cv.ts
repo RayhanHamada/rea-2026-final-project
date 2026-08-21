@@ -1,9 +1,12 @@
 "use server";
 
 import { and, desc, eq, gt } from "drizzle-orm";
+import { PDFDocument, PDFName } from "pdf-lib";
+import QRCode from "qrcode";
 import { headers } from "next/headers";
 
 import { createAuth } from "@/lib/auth";
+import { appenv } from "@/lib/appenv";
 import { getStore } from "@/lib/cloudflare";
 import { createDb } from "@/lib/db/client";
 import { cv, cvDownloadUrl } from "@/lib/db/schema";
@@ -167,7 +170,16 @@ export async function setCurrentCv(cvId: string) {
   await db.update(cv).set({ isCurrentlyUsed: true }).where(eq(cv.id, cvId));
 }
 
-export async function copyCvForMarkedKey(cvId: string) {
+export interface QrCodeConfig {
+  data?: string;
+  width?: number;
+  height?: number;
+}
+
+export async function copyCvForMarkedKey(
+  cvId: string,
+  qrCode?: QrCodeConfig
+) {
   const env = getStore();
   if (!env) {
     throw new Error("Cloudflare env not available outside a request");
@@ -191,7 +203,59 @@ export async function copyCvForMarkedKey(cvId: string) {
   }
 
   const markedCvKey = `cvs/${session.user.id}/${crypto.randomUUID()}.pdf`;
-  await s3mini.copyObject(record.key, markedCvKey);
+
+  const pdfBytes = await s3mini.getObjectArrayBuffer(record.key);
+  if (!pdfBytes) {
+    throw new Error("Failed to download CV.");
+  }
+
+  const pdfDoc = await PDFDocument.load(pdfBytes);
+  const pages = pdfDoc.getPages();
+
+  const qrData = qrCode?.data ?? `${appenv.BETTER_AUTH_URL}/${session.user.id}`;
+  const qrWidth = qrCode?.width ?? 40;
+  const qrHeight = qrCode?.height ?? 40;
+
+  const qrPngBytes = await QRCode.toBuffer(qrData, {
+    width: 64,
+    margin: 1,
+    type: "png",
+  });
+  const qrImage = await pdfDoc.embedPng(qrPngBytes);
+
+  for (const page of pages) {
+    const { width, height } = page.getSize();
+    const x = width - qrWidth - 12;
+    const y = height - qrHeight - 8;
+
+    page.drawImage(qrImage, {
+      x,
+      y,
+      width: qrWidth,
+      height: qrHeight,
+    });
+
+    page.node.set(PDFName.of("Annots"), pdfDoc.context.obj([
+      ...(page.node.Annots() ?? pdfDoc.context.obj([])).asArray() ?? [],
+      pdfDoc.context.register(
+        pdfDoc.context.obj({
+          Type: "Annot",
+          Subtype: "Link",
+          Rect: [x, y, x + qrWidth, y + qrHeight],
+          Border: [0, 0, 0],
+          A: {
+            Type: "Action",
+            S: "URI",
+            URI: qrData,
+          },
+        })
+      ),
+    ]));
+  }
+
+  const markedBytes = await pdfDoc.save();
+
+  await s3mini.putObject(markedCvKey, Buffer.from(markedBytes), "application/pdf");
 
   const [updated] = await db
     .update(cv)
