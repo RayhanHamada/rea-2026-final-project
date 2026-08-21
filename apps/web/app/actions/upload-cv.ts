@@ -31,7 +31,7 @@ export async function listCvRecords() {
     .select()
     .from(cv)
     .where(eq(cv.userId, session.user.id))
-    .orderBy(desc(cv.createdAt));
+    .orderBy(desc(cv.isCurrentlyUsed), desc(cv.createdAt));
 }
 
 export interface PresignedUploadResult {
@@ -97,6 +97,22 @@ export async function saveCvRecord({
       key,
     })
     .returning();
+
+  const [hasActive] = await db
+    .select()
+    .from(cv)
+    .where(
+      and(eq(cv.userId, session.user.id), eq(cv.isCurrentlyUsed, true))
+    )
+    .limit(1);
+
+  if (!hasActive) {
+    await db
+      .update(cv)
+      .set({ isCurrentlyUsed: true, updatedAt: new Date() })
+      .where(eq(cv.id, record.id));
+    record.isCurrentlyUsed = true;
+  }
 
   return record;
 }
@@ -285,9 +301,27 @@ export async function deleteCvRecord(cvId: string) {
     throw new Error("CV not found.");
   }
 
+  const wasUsed = record.isCurrentlyUsed;
+
   await s3mini.deleteObject(record.key);
   if (record.markedCvKey) {
     await s3mini.deleteObject(record.markedCvKey);
   }
   await db.delete(cv).where(eq(cv.id, cvId));
+
+  if (wasUsed) {
+    const [previousCv] = await db
+      .select()
+      .from(cv)
+      .where(eq(cv.userId, session.user.id))
+      .orderBy(desc(cv.createdAt))
+      .limit(1);
+
+    if (previousCv) {
+      await db
+        .update(cv)
+        .set({ isCurrentlyUsed: true, updatedAt: new Date() })
+        .where(eq(cv.id, previousCv.id));
+    }
+  }
 }
