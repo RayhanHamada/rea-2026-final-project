@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "8a9a28ab-41df-429b-851b-c7bb1806f11b",
+  "id": "b5709a28-a1b7-49a6-8a79-bae1c234596e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "account": {
@@ -157,6 +157,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false
+        },
+        "marked_cv_key": {
+          "name": "marked_cv_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "is_currently_used": {

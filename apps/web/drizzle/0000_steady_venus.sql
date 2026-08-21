@@ -21,6 +21,7 @@ CREATE TABLE `cv` (
 	`user_id` text NOT NULL,
 	`original_filename` text NOT NULL,
 	`key` text NOT NULL,
+	`marked_cv_key` text,
 	`is_currently_used` integer DEFAULT false NOT NULL,
 	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,

@@ -9,6 +9,7 @@ import type { DragEvent, KeyboardEvent } from "react";
 import { toast } from "sonner";
 
 import {
+  copyCvForMarkedKey,
   createPresignedCvUploadUrl,
   saveCvRecord,
 } from "@/app/actions/upload-cv";
@@ -73,7 +74,9 @@ export function PdfDropzone() {
         throw new Error("Upload failed. Please try again.");
       }
 
-      return saveCvRecord({ key, originalFilename: f.name });
+      return saveCvRecord({ key, originalFilename: f.name }).then((record) =>
+        copyCvForMarkedKey(record.id).then(() => record)
+      );
     },
     onSuccess: (_, variables) => {
       toast.success("CV uploaded", {
